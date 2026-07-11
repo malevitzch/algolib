@@ -1,61 +1,50 @@
 #include <iostream>
-#include <vector>
 #include "fastexpo.cpp"
 
-template <typename T>
-struct modular {
-  template<T MOD>
-  struct mod {
-    T val;
+template <typename T, T MOD>
+struct mod {
+  static const T modulus = MOD;
+  using val_type = T;
+  T val;
 
-    mod<MOD> operator-() const {
-      return mod<MOD>(MOD - val);
-    }
+  mod(T val = 0) : val(((val % MOD) + MOD) % MOD) {}
 
-    mod<MOD> operator+(const mod<MOD> m) const {
-      return (val + m.val) % MOD;
-    }
-    mod<MOD> operator-(const mod<MOD> m) const {
-      return (*this) + (-m);
-    }
-    mod<MOD> operator*(const mod<MOD> m) const {
-      return mod<MOD>((val * m.val) % MOD);
-    }
-    mod<MOD> inverse() const {
-      if(val == 0) throw std::runtime_error("Trying to compute inverse of 0");
-      return fast_exp<mod<MOD>>(*this, MOD - 2);
-    }
-    mod<MOD> operator/(const mod<MOD> m) const {
-      return (*this) * m.inverse();
-    }
-    static mod<MOD> factorial(size_t n) {
-      static int last = 0;
-      static std::vector<mod<MOD>> fact = {1};
-      while(last < n) fact.push_back(fact.back() * mod<MOD>(++last));
-      return fact[n];
-    }
+  mod operator-() const {
+    return mod(MOD - val);
+  }
+  mod operator+(const mod m) const {
+    return mod(val + m.val);
+  }
+  mod operator-(const mod m) const {
+    return (*this) + (-m);
+  }
+  mod operator*(const mod m) const {
+    return mod(val * m.val);
+  }
+  mod inverse() const {
+    if (val == 0) throw std::runtime_error("Trying to compute inverse of 0");
+    return fast_exp<mod>(*this, MOD - 2);
+  }
+  mod operator/(const mod m) const {
+    return (*this) * m.inverse();
+  }
 
-    mod(T val) : val(val % MOD) {}
-    friend std::istream& operator>>(std::istream& s, const mod<MOD>& x) {
-      s >> x.val; return s;
-    }
-    friend std::ostream& operator<<(std::ostream& s, const mod<MOD>& x) {
-      s << x.val; return s;
-    }
-  };
+  friend std::istream& operator>>(std::istream& s, mod& x) {
+    T v; s >> v; x = mod(v); return s;
+  }
+  friend std::ostream& operator<<(std::ostream& s, const mod& x) {
+    s << x.val; return s;
+  }
 };
-template <typename T, T MOD>
-typename modular<T>::template mod<MOD> operator+(typename modular<T>::template mod<MOD> a, T b) {
-  return a + typename modular<T>::template mod<MOD>(b);
-}
 
 template <typename T, T MOD>
-typename modular<T>::template mod<MOD> operator+(T a, typename modular<T>::template mod<MOD> b) {
-  return typename modular<T>::template mod<MOD>(a) + b;
+mod<T, MOD> operator+(mod<T, MOD> a, T b) {
+  return a + mod<T, MOD>(b);
+}
+template <typename T, T MOD>
+mod<T, MOD> operator+(T a, mod<T, MOD> b) {
+  return mod<T, MOD>(a) + b;
 }
 
-// This is how you generate a specific type, first specify
-// the "carrier" type, then the modulus. For certain things to work,
-// the carrier type should accept 0 and 1.
-using ll97 = modular<long long>::mod<(long long)(1e9 + 7)>;
-using ll99 = modular<long long>::mod<(long long)(1e9 + 9)>;
+using ll97 = mod<long long, (long long)(1e9 + 7)>;
+using ll99 = mod<long long, (long long)(1e9 + 9)>;
