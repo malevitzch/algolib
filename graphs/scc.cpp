@@ -5,9 +5,11 @@
 
 struct scc_t {
   std::vector<int> components;
+  const int component_count;
   int operator[](int i) {
     return components[i-1];
   }
+  scc_t(std::vector<int> components) : components(components), component_count(*std::max_element(components.begin(), components.end())) {}
 };
 
 void paint(graph_t& graph, std::vector<int>& vis, int my_color, int v) {
@@ -22,14 +24,15 @@ void paint(graph_t& graph, std::vector<int>& vis, int my_color, int v) {
 scc_t scc(graph_t& graph) {
   std::vector<int> sorted = toposort(graph);
   graph_t reversed = reverse_graph(graph);
-  std::vector<int> res(graph.size(), 0);
+  std::vector<int> components(graph.size(), 0);
   int index = 1;
   for(int x : sorted) {
-    if(res[x - 1] == 0) {
-      paint(reversed, res, index++, x);
+    if(components[x - 1] == 0) {
+      paint(reversed, components, index++, x);
     }
   }
-  return scc_t {res};
+  scc_t res(components);
+  return res;
 }
 
 #endif
